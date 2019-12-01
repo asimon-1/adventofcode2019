@@ -7,7 +7,7 @@ def main(directory):
 
 
 if __name__ == "__main__":
-    expected_test = False
+    expected_test = int(get_input("outputs_test"))
     answer_test = main("inputs_test")
     if expected_test == answer_test:
         print("Test input successful.")
