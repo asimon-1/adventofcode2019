@@ -1,7 +1,7 @@
 from utils import get_input, run_main
 
 
-def main(directory, part_2=False):
+def main(directory, test=False, part_2=False):
     input_text = get_input(directory)
     counter = 0
     for line in input_text.splitlines():

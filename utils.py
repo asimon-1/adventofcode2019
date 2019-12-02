@@ -26,13 +26,14 @@ def get_input(directory, base=sys.argv[0].split(".")[0] + ".*"):
 
 
 def run_main(main):
+    """Run the main function for parts 1 and 2 with tests."""
     for ind in (0, 1):
         expected_test = int(get_input("outputs_test").splitlines()[ind])
-        answer_test = main("inputs_test", ind)
+        answer_test = main("inputs_test", test=True, part_2=ind)
         print(f"\nPart {ind+1}")
         if expected_test == answer_test:
             print("Test input successful.")
-            answer = main("inputs", ind)
+            answer = main("inputs", test=False, part_2=ind)
             print(f"The answer is {answer}")
         else:
             print("Test input was not successful!")
