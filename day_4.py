@@ -1,10 +1,10 @@
 from utils import get_input, run_main
-from numpy import log10, array
+from math import log10
 
 
 def check_increasing(n):
     digits = int(log10(n)) + 1
-    n_digits = array([n // 10 ** e % 10 for e in range(digits - 1, -1, -1)])
+    n_digits = [n // 10 ** e % 10 for e in range(digits - 1, -1, -1)]
     if all((n_digits[i + 1] - n_digits[i] >= 0 for i in range(len(n_digits) - 1))):
         return True
     return False
@@ -12,7 +12,7 @@ def check_increasing(n):
 
 def check_adjacent(n):
     digits = int(log10(n)) + 1
-    n_digits = array([n // 10 ** e % 10 for e in range(digits - 1, -1, -1)])
+    n_digits = [n // 10 ** e % 10 for e in range(digits - 1, -1, -1)]
     if any((n_digits[i + 1] == n_digits[i] for i in range(len(n_digits) - 1))):
         return True
     return False
