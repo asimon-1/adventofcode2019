@@ -2,129 +2,126 @@ from utils import get_input, run_main
 from itertools import product
 
 
-def addition(intcode, pointer, mode1, mode2, mode3):
-    param1 = intcode[pointer + 1]
-    param2 = intcode[pointer + 2]
-    param3 = intcode[pointer + 3]
-    val1 = param1 if mode1 else intcode[param1]
-    val2 = param2 if mode2 else intcode[param2]
+class Computer:
+    def __init__(self, intcode):
+        self.original_intcode = intcode
+        self.intcode = intcode
+        self.pointer = 0
+        self.run = 1
+        self.out = 0
+        self.mapping = {
+            1: self.addition,
+            2: self.multiplication,
+            3: self.input,
+            4: self.output,
+            5: self.jump_if_true,
+            6: self.jump_if_false,
+            7: self.less_than,
+            8: self.equal,
+            99: self.exit,
+        }
 
-    if mode3:
-        # Immediate
-        raise RuntimeError
-    else:
-        # Position
-        intcode[param3] = val1 + val2
-    return intcode, pointer + 4
+    def addition(self, mode1, mode2, mode3, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        param2 = self.intcode[self.pointer + 2]
+        param3 = self.intcode[self.pointer + 3]
+        val1 = param1 if mode1 else self.intcode[param1]
+        val2 = param2 if mode2 else self.intcode[param2]
 
-
-def multiplication(intcode, pointer, mode1, mode2, mode3):
-    param1 = intcode[pointer + 1]
-    param2 = intcode[pointer + 2]
-    param3 = intcode[pointer + 3]
-    val1 = param1 if mode1 else intcode[param1]
-    val2 = param2 if mode2 else intcode[param2]
-    if mode3:
-        # Immediate
-        raise RuntimeError
-    else:
-        # Position
-        intcode[param3] = val1 * val2
-    return intcode, pointer + 4
-
-
-def input(intcode, pointer, inp):
-    param1 = intcode[pointer + 1]
-    intcode[param1] = inp
-    return intcode, pointer + 2
+        if mode3:
+            # Immediate
+            raise RuntimeError
+        else:
+            # Position
+            self.intcode[param3] = val1 + val2
+        self.pointer += 4
 
 
-def output(intcode, pointer, mode1):
-    param1 = intcode[pointer + 1]
-    return intcode, pointer + 2, (param1 if mode1 else intcode[param1])
+    def multiplication(self, mode1, mode2, mode3, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        param2 = self.intcode[self.pointer + 2]
+        param3 = self.intcode[self.pointer + 3]
+        val1 = param1 if mode1 else self.intcode[param1]
+        val2 = param2 if mode2 else self.intcode[param2]
+        if mode3:
+            # Immediate
+            raise RuntimeError
+        else:
+            # Position
+            self.intcode[param3] = val1 * val2
+        self.pointer += 4
 
 
-def jump_if_true(intcode, pointer, mode1, mode2):
-    param1 = intcode[pointer + 1]
-    param2 = intcode[pointer + 2]
-    val1 = param1 if mode1 else intcode[param1]
-    val2 = param2 if mode2 else intcode[param2]
-    return intcode, (val2 if val1 else pointer + 3)
+    def input(self, inp, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        self.intcode[param1] = inp
+        self.pointer += 2
 
 
-def jump_if_false(intcode, pointer, mode1, mode2):
-    param1 = intcode[pointer + 1]
-    param2 = intcode[pointer + 2]
-    val1 = param1 if mode1 else intcode[param1]
-    val2 = param2 if mode2 else intcode[param2]
-    return intcode, (val2 if not val1 else pointer + 3)
+    def output(self, mode1, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        self.pointer += 2
+        self.out = param1 if mode1 else self.intcode[param1]
 
 
-def less_than(intcode, pointer, mode1, mode2):
-    param1 = intcode[pointer + 1]
-    param2 = intcode[pointer + 2]
-    param3 = intcode[pointer + 3]
-    val1 = param1 if mode1 else intcode[param1]
-    val2 = param2 if mode2 else intcode[param2]
-    if val1 < val2:
-        intcode[param3] = 1
-    else:
-        intcode[param3] = 0
-    return intcode, pointer + 4
+    def jump_if_true(self, mode1, mode2, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        param2 = self.intcode[self.pointer + 2]
+        val1 = param1 if mode1 else self.intcode[param1]
+        val2 = param2 if mode2 else self.intcode[param2]
+        self.pointer = val2 if val1 else self.pointer + 3
 
 
-def equal(intcode, pointer, mode1, mode2):
-    param1 = intcode[pointer + 1]
-    param2 = intcode[pointer + 2]
-    param3 = intcode[pointer + 3]
-    val1 = param1 if mode1 else intcode[param1]
-    val2 = param2 if mode2 else intcode[param2]
-    if val1 == val2:
-        intcode[param3] = 1
-    else:
-        intcode[param3] = 0
-    return intcode, pointer + 4
+    def jump_if_false(self, mode1, mode2, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        param2 = self.intcode[self.pointer + 2]
+        val1 = param1 if mode1 else self.intcode[param1]
+        val2 = param2 if mode2 else self.intcode[param2]
+        self.pointer = val2 if not val1 else self.pointer + 3
 
 
-def run_opcode(intcode, inp):
-    intcode = intcode.copy()
-    pointer = 0
-    out = 0
-    opcode = intcode[pointer]
+    def less_than(self, mode1, mode2, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        param2 = self.intcode[self.pointer + 2]
+        param3 = self.intcode[self.pointer + 3]
+        val1 = param1 if mode1 else self.intcode[param1]
+        val2 = param2 if mode2 else self.intcode[param2]
+        if val1 < val2:
+            self.intcode[param3] = 1
+        else:
+            self.intcode[param3] = 0
+        self.pointer += 4
 
-    # Run the intcode
-    while (operation := opcode % 100) != 99:
-        mode1 = opcode // 10 ** 2 % 10
-        mode2 = opcode // 10 ** 3 % 10
-        mode3 = opcode // 10 ** 4 % 10
-        if operation == 1:
-            # Addition
-            intcode, pointer = addition(intcode, pointer, mode1, mode2, mode3)
-        elif operation == 2:
-            # Multiplication
-            intcode, pointer = multiplication(intcode, pointer, mode1, mode2, mode3)
-        elif operation == 3:
-            # Input
-            intcode, pointer = input(intcode, pointer, inp)
-        elif operation == 4:
-            # Output
-            intcode, pointer, out = output(intcode, pointer, mode1)
-        elif operation == 5:
-            # Jump-if-true
-            intcode, pointer = jump_if_true(intcode, pointer, mode1, mode2)
-        elif operation == 6:
-            # Jump if false
-            intcode, pointer = jump_if_false(intcode, pointer, mode1, mode2)
-        elif operation == 7:
-            # Less than
-            intcode, pointer = less_than(intcode, pointer, mode1, mode2)
-        elif operation == 8:
-            # Equals
-            intcode, pointer = equal(intcode, pointer, mode1, mode2)
 
-        opcode = intcode[pointer]
+    def equal(self, mode1, mode2, **kwargs):
+        param1 = self.intcode[self.pointer + 1]
+        param2 = self.intcode[self.pointer + 2]
+        param3 = self.intcode[self.pointer + 3]
+        val1 = param1 if mode1 else self.intcode[param1]
+        val2 = param2 if mode2 else self.intcode[param2]
+        if val1 == val2:
+            self.intcode[param3] = 1
+        else:
+            self.intcode[param3] = 0
+        self.pointer += 4
 
-    return out
+    def exit(self, **kwargs):
+        self.run = 0
+
+    def run_opcode(self, inp):
+        out = 0
+
+        # Run the intcode
+        while self.run:
+            opcode = self.intcode[self.pointer]
+            operation = opcode % 100
+            mode1 = opcode // 10 ** 2 % 10
+            mode2 = opcode // 10 ** 3 % 10
+            mode3 = opcode // 10 ** 4 % 10
+            kwargs = {"mode1":mode1, "mode2":mode2, "mode3":mode3, "inp":inp}
+            self.mapping[operation](**kwargs)
+
+        return self.out
 
 
 def main(directory, test=False, part_2=False):
@@ -145,7 +142,9 @@ def main(directory, test=False, part_2=False):
         else:
             inp = 5
 
-    return run_opcode(original_intcode, inp)
+    computer = Computer(original_intcode)
+
+    return computer.run_opcode(inp)
 
 
 if __name__ == "__main__":
